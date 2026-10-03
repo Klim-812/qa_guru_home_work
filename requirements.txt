@@ -5,3 +5,4 @@ Pygments~=2.21.0
 pluggy~=1.6.0
 iniconfig~=2.3.0
 PyMySQL~=1.2.3
+selenium~=4.50.0
