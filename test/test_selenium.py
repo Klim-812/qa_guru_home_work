@@ -1,5 +1,5 @@
 import pytest
-from selenium import webdriver
+from selenium_lesson_1 import webdriver
 
 driver = webdriver.Chrome()
 url_selenium = 'https://www.selenium.dev/'
