@@ -7,12 +7,14 @@ from selenium.webdriver.common.by import By
 
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 
 # Локаторы элементов формы на странице
 LOGIN_INPUT     = (By.ID, "login-input")
 PASSWORD_INPUT  = (By.ID, "password-input")
 SUBMIT_BUTTON   = (By.ID, "submit-button")
 STATUS_MESSAGE  = (By.ID, "error-message")
+WELCOME_MESSAGE = (By.ID, "welcome-message")
 
 
 @pytest.fixture
@@ -34,25 +36,25 @@ def driver():
 
 # Реализация DDT подхода через параметризацию pytest
 @pytest.mark.parametrize(
-    "email, password, scenario_type, expected_text",
+    "email, password, expected_text",
     [
         # --- ПОЗИТИВНЫЕ СЦЕНАРИИ ---
-        ("qaguru@qa.guru", "qaguru", "positive", "Вы успешно вошли"),
-        ("QAGURU@QA.GURU", "qaguru", "positive", "Вы успешно вошли"), 
+        ("user1", "password1", "Welcome, user1!"),
         
         # --- НЕГАТИВНЫЕ СЦЕНАРИИ ---
-        ("qaguru@qa.guru", "wrong_pass", "negative", "Неверный пароль"),
-        ("unknown@qa.guru", "qaguru", "negative", "Такого пользователя не существует"),
-        ("", "qaguru", "negative", "Заполните поле Email"),
-        ("qaguru@qa.guru", "", "negative", "Заполните поле Пароль"),
-        ("", "", "negative", "Заполните поля"),
-        ("qaguruqa.guru", "qaguru", "negative", "Email должен содержать символ @"),
-        ("qaguru@", "qaguru", "negative", "Введен некорректный Email"),
-        ("@qa.guru", "qaguru", "negative", "Введен некорректный Email"),
-        ("qaguru' OR '1'='1", "' OR '1'='1", "negative", "Некорректные данные"),
+        ("user2", "password1", "Wrong login or password"), # добавил негативный
+        ("qaguru@qa.guru", "wrong_pass", "Wrong login or password"),
+        ("unknown@qa.guru", "qaguru", "Wrong login or password"),
+        ("", "qaguru", "Login is required (minimum 3 characters)"),
+        ("qaguru@qa.guru", "", "Password is required (minimum 6 characters)"),
+        ("", "", "Login and password are required (minimum 3 and 6 characters)"),
+        ("qaguruqa.guru", "qaguru", "Wrong login or password"),
+        ("qaguru@", "qaguru", "Wrong login or password"),
+        ("@qa.guru", "qaguru", "Wrong login or password"),
+        ("qaguru' OR '1'='1", "' OR '1'='1", "Wrong login or password"),
     ]
 )
-def test_login_form(driver, email, password, scenario_type, expected_text):
+def test_login_form(driver, email, password, expected_text):
     """Тест кейс, принимающий наборы данных (DDT)."""
     
     # 1. Открытие тестируемой страницы
@@ -74,7 +76,7 @@ def test_login_form(driver, email, password, scenario_type, expected_text):
     submit_button.click()
     
     # 5. Ожидание появления ответа
-    actual_result = driver.find_element(*STATUS_MESSAGE).text
+    actual_result = ""
 
     time.sleep(5)
 
@@ -83,18 +85,12 @@ def test_login_form(driver, email, password, scenario_type, expected_text):
     # ПРИМЕЧАНИЕ: Данный блок адаптируется под логику страницы (JS-alert или блок текста).
     try:
         # Проверяем, появился ли браузерный alert
-        alert = WebDriverWait(driver, 2).until(EC.alert_is_present())
-        alert_text = alert.text
-        print(f"Allert is present with test: {alert_text}")
-        alert.accept()
-        actual_result = alert_text
-    except:
-        # Если алерта нет, ищем текст ошибки на самой странице
-        actual_result = driver.find_element(*STATUS_MESSAGE).text
-        print(f"Allert-а нет, поэтому мы ищем тест с ошибкой комментарием на странице, текст: {actual_result}")
+        welcom_message = WebDriverWait(driver, 2).until(EC.visibility_of_element_located(WELCOME_MESSAGE))
+        actual_result = welcom_message.text
+    except TimeoutException:
+        # Если алерта нет, ищем текст на странице
+        status_message = WebDriverWait(driver, 2).until(EC.visibility_of_element_located(STATUS_MESSAGE))
+        actual_result = status_message.text
 
     # 6. Проверка результата (Assertion)
-    if scenario_type == "positive":
-        assert expected_text in actual_result, f"Ожидался успешный вход, но получено: '{actual_result}'" #"Wrong login or password"
-    else:
-        assert expected_text in actual_result or driver.current_url != "success_url",  f"Форма пропустила некорректные данные: Email='{email}', Pass='{password}'"
+        assert expected_text in actual_result, f"Ожидаемый текст '{expected_text}', а полученный '{actual_result}'"
