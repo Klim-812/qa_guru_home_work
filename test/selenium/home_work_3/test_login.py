@@ -10,20 +10,20 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 
 # Локаторы элементов формы на странице
-LOGIN_INPUT     = (By.ID, "login-input")
-PASSWORD_INPUT  = (By.ID, "password-input")
-SUBMIT_BUTTON   = (By.ID, "submit-button")
-STATUS_MESSAGE  = (By.ID, "error-message")
+LOGIN_INPUT = (By.ID, "login-input")
+PASSWORD_INPUT = (By.ID, "password-input")
+SUBMIT_BUTTON = (By.ID, "submit-button")
+STATUS_MESSAGE = (By.ID, "error-message")
 WELCOME_MESSAGE = (By.ID, "welcome-message")
 
 
 @pytest.fixture
 def driver():
     """Фикстура для инициализации и закрытия браузера."""
-    #options = webdriver.ChromeOptions()
-    #options.add_argument("--headless")  # Фоновый режим для CI/CD
-    #options.add_argument("--window-size=1920,1080")    
-    #driver = webdriver.Chrome(options=options)
+    # options = webdriver.ChromeOptions()
+    # options.add_argument("--headless")  # Фоновый режим для CI/CD
+    # options.add_argument("--window-size=1920,1080")
+    # driver = webdriver.Chrome(options=options)
 
     driver = webdriver.Chrome()
     driver.maximize_window()
@@ -34,15 +34,14 @@ def driver():
     driver.quit()
 
 
-# Реализация DDT подхода через параметризацию pytest
 @pytest.mark.parametrize(
     "email, password, expected_text",
     [
         # --- ПОЗИТИВНЫЕ СЦЕНАРИИ ---
         ("user1", "password1", "Welcome, user1!"),
-        
+
         # --- НЕГАТИВНЫЕ СЦЕНАРИИ ---
-        ("user2", "password1", "Wrong login or password"), # добавил негативный
+        ("user2", "password1", "Wrong login or password"),  # добавил негативный
         ("qaguru@qa.guru", "wrong_pass", "Wrong login or password"),
         ("unknown@qa.guru", "qaguru", "Wrong login or password"),
         ("", "qaguru", "Login is required (minimum 3 characters)"),
@@ -56,22 +55,22 @@ def driver():
 )
 def test_login_form(driver, email, password, expected_text):
     """Тест кейс, принимающий наборы данных (DDT)."""
-    
+
     # 1. Открытие тестируемой страницы
     driver.get("https://qa-guru.github.io/one-page-form/login.html")
-    
+
     # 2. Поиск элементов формы
-    email_field = driver.find_element(*LOGIN_INPUT)    
-    password_field = driver.find_element(*PASSWORD_INPUT)    
+    email_field = driver.find_element(*LOGIN_INPUT)
+    password_field = driver.find_element(*PASSWORD_INPUT)
     submit_button = driver.find_element(*SUBMIT_BUTTON)
-    
+
     # 3. Очистка полей и ввод тестовых данных
     email_field.clear()
     email_field.send_keys(email)
-    
+
     password_field.clear()
     password_field.send_keys(password)
-    
+
     # 4. Клик по кнопке отправки формы
     submit_button.click()
 
@@ -85,9 +84,9 @@ def test_login_form(driver, email, password, expected_text):
         welcom_message = WebDriverWait(driver, 2).until(EC.visibility_of_element_located(WELCOME_MESSAGE))
         actual_result = welcom_message.text
     except TimeoutException:
-        # Проверяем сообщение об ошибке при неуспехе
+        # Проверяем сообщение об ошибке при не успехе
         status_message = WebDriverWait(driver, 2).until(EC.visibility_of_element_located(STATUS_MESSAGE))
         actual_result = status_message.text
 
-    # 6. Проверка результата (Assertion)
+        # 6. Проверка результата (Assertion)
         assert expected_text in actual_result, f"Ожидаемый текст '{expected_text}', а полученный '{actual_result}'"
