@@ -81,11 +81,11 @@ def test_login_form(driver, email, password, expected_text):
     time.sleep(5)
 
     try:
-        # Проверяем, появился ли браузерный alert
+        # Проверяем, появилось ли приветсвенное успешное сообщение
         welcom_message = WebDriverWait(driver, 2).until(EC.visibility_of_element_located(WELCOME_MESSAGE))
         actual_result = welcom_message.text
     except TimeoutException:
-        # Если алерта нет, ищем текст на странице
+        # Проверяем сообщение об ошибке при неуспехе
         status_message = WebDriverWait(driver, 2).until(EC.visibility_of_element_located(STATUS_MESSAGE))
         actual_result = status_message.text
 
