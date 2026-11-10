@@ -74,15 +74,12 @@ def test_login_form(driver, email, password, expected_text):
     
     # 4. Клик по кнопке отправки формы
     submit_button.click()
-    
+
     # 5. Ожидание появления ответа
     actual_result = ""
 
     time.sleep(5)
 
-    # NOTE: как минимум по трем причинам это анти подход 
-    # 5. Ожидание появления ответа (алерта или текста на экране)
-    # ПРИМЕЧАНИЕ: Данный блок адаптируется под логику страницы (JS-alert или блок текста).
     try:
         # Проверяем, появился ли браузерный alert
         welcom_message = WebDriverWait(driver, 2).until(EC.visibility_of_element_located(WELCOME_MESSAGE))
