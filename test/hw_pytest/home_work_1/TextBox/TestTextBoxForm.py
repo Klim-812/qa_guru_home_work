@@ -1,7 +1,8 @@
 # cd test/hw_pytest/home_work_1/TextBox
+#pytest TestTextBoxForm.py -v
 # pytest -m smoke -s
 # pytest -m regression -s
-# pytest -m db_config -s
+
 # параметр -k поддерживает логические выражения and, or и not
 # параметр -m запускает только те тесты, которые помечены определёнными маркерами - декораторами
 # параметр -s отключает перехват вывода и позволяет видеть в терминале всё, что тесты печатают через print()
